@@ -10,6 +10,10 @@ export type SessionUser = {
   username: string;
 };
 
+// Site login is opt-in. When auth is disabled (the default), the whole site is
+// open and no session is required — the MLB.com token flow is unaffected.
+export const authEnabled = (): boolean => getConfig().auth_enabled === true;
+
 // Same scheme as the PHP hash_password(), so existing .config hashes work as-is.
 const sha1 = (value: string) => crypto.createHash('sha1').update(value).digest('hex');
 export const hashPassword = (password: string) => sha1('salty-salt' + sha1(password));
@@ -49,4 +53,14 @@ export async function getSession(): Promise<SessionUser | null> {
   } catch {
     return null;
   }
+}
+
+// Whether the current request may see gated content. Always true when site auth
+// is disabled; otherwise requires a valid session. Use this instead of
+// getSession() at the gates so the flag toggles the whole site.
+export async function isAuthorized(): Promise<boolean> {
+  if (!authEnabled()) {
+    return true;
+  }
+  return !!(await getSession());
 }

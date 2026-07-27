@@ -1,7 +1,7 @@
 import { format, addDays } from 'date-fns';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth';
+import { isAuthorized } from '@/lib/auth';
 import { gamesData, sortGames } from '@/lib/stats';
 import { GamesJson } from '@/lib/types';
 import GameCard from './GameCard';
@@ -31,9 +31,9 @@ type GamesViewProps = {
 };
 
 const GamesView = async ({ date }: GamesViewProps) => {
-  // The games view is gated behind login, like the React app's PrivateRoutes.
-  const session = await getSession();
-  if (!session) {
+  // Gated only when site auth is enabled (like the React app's PrivateRoutes);
+  // with auth off, isAuthorized() is always true and the view is open.
+  if (!(await isAuthorized())) {
     redirect('/login');
   }
 

@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getSession } from '@/lib/auth';
+import { isAuthorized } from '@/lib/auth';
 import { getConfig } from '@/lib/config';
 
 // Replaces the PHP /auth endpoint. Persists the MLB token bundle the client
 // obtained from the Okta flow, into tmp_dir/tokens.json (same as the PHP app).
 export async function POST(request: Request) {
-  const session = await getSession();
-  if (!session) {
+  if (!(await isAuthorized())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

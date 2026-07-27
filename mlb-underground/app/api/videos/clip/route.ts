@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { isAuthorized } from '@/lib/auth';
 import { getClip } from '@/lib/videos';
 
 export async function GET(request: Request) {
-  const session = await getSession();
-  if (!session) {
+  if (!(await isAuthorized())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

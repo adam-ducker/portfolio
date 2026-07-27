@@ -21,20 +21,28 @@ I rebuilt the front end again using react and it logged in from the front end to
 
 Then I got tired of having it split between front end and backend. I told Claude to help me port it all to Next.js and here we are. A single application still running on a fake MILB.com domain.
 
+> **Demo note:** Site login is optional and controlled by the `auth_enabled`
+> flag in `config.json` (see [Config](#config)). It is **off by default**, so
+> this portfolio demo runs open — no site login required. The MLB.com token
+> flow works the same regardless of the flag.
+
 ## Status
 
-- **Login** — a JSON-config user list (like the old PHP `.config`), validated
-  server-side, with an httpOnly session cookie.
+- **Site login (optional)** — a JSON-config user list (like the old PHP
+  `.config`), validated server-side, with an httpOnly session cookie. Turned on
+  and off by `auth_enabled` in `config.json`. When off (the default), every page
+  and API route is open; when on, the site is gated behind `/login` like the
+  React app's private routes.
 - **Games view** — a server component fetches today's schedule from the MLB
   Stats API, transforms it, and renders the same cards/styling as the React app.
-  Gated behind login (like the React app's private routes).
 - **MLB token flow (server-side)** — the MLB Okta interaction-code / PKCE flow
   runs on the server (`lib/mlbAuth.ts`, exposed via `POST /api/mlb/refresh`).
-  Once signed in, the thin `MLBContextProvider` (client) pings that route on load
-  and on an interval; the server refreshes the MLB token with the config
-  credentials when it's stale and returns the `{title,status}` the nav's status
-  dot shows. The MLB password and PKCE never touch the browser. (The old
-  browser-side flow + `/api/config` are deprecated.)
+  The thin `MLBContextProvider` (client) pings that route on load and on an
+  interval; the server refreshes the MLB token with the config credentials when
+  it's stale and returns the `{title,status}` the nav's status dot shows. The
+  MLB password and PKCE never touch the browser. This runs whenever the site is
+  visible — i.e. always when `auth_enabled` is off, or once signed in when it's
+  on. (The old browser-side flow + `/api/config` are deprecated.)
 - **Player** — `/player/...` renders a game: the live linescore, a tabbed sidebar
   (Preview / Game / rosters, built from `buildGameData`), and a video.js player.
   The stream URL comes from `/api/media/[mediaId]`, a port of the PHP
@@ -48,8 +56,8 @@ Then I got tired of having it split between front end and backend. I told Claude
 
 Routes:
 
-- `/login` — sign in
-- `/` — today's games (US Eastern), requires login
+- `/login` — sign in (only reachable when `auth_enabled` is true; otherwise it redirects home)
+- `/` — today's games (US Eastern); open unless `auth_enabled` is true
 - `/games/YYYY-MM-DD` — games for a specific date
 - `/player/:gameId/:feedType/:mediaId` — game view + video player
 - `/videos/:slug` — highlight-clip grid for a team
@@ -71,14 +79,25 @@ browser-side approach is in git history.)
 
 ## Config
 
-Users and shared MLB credentials live in `config.json` at the project root
-(git-ignored). Copy the template and fill it in:
+Config lives in `config.json` at the project root (git-ignored). Copy the
+template and fill it in:
 
 ```bash
 cp config.example.json config.json
 ```
 
-Passwords are stored hashed with the same scheme as the PHP app —
+Fields:
+
+- `auth_enabled` *(boolean, default `false`)* — whether the **site itself**
+  requires a login. Off by default, so the app is open. Set to `true` to gate
+  every page/route behind `/login` and the `users` list below. Does not affect
+  the MLB.com token flow.
+- `users` — the site login accounts (only used when `auth_enabled` is `true`).
+- `mlb_username` / `mlb_password` — the MLB.com credentials used for the
+  server-side token flow.
+- `tmp_dir` — where the server caches the MLB token bundle and resolved streams.
+
+Site-login passwords are stored hashed with the same scheme as the PHP app —
 `sha1('salty-salt' . sha1(plaintext))` — so you can paste your existing
 `.config` hashes directly. To generate a new hash:
 
@@ -86,11 +105,9 @@ Passwords are stored hashed with the same scheme as the PHP app —
 npm run hash -- yourPasswordHere
 ```
 
-The committed `config.json` ships with all four users set to the password
-`changeme` for first-run testing — replace those hashes before real use.
-
-Set `AUTH_SECRET` in the environment to sign session cookies (any random
-string). Without it, a known insecure dev default is used.
+When `auth_enabled` is `true`, set `AUTH_SECRET` in the environment to sign
+session cookies (any random string). Without it, a known insecure dev default is
+used.
 
 ## Develop
 
@@ -103,10 +120,11 @@ npm run dev     # http://localhost:3000
 
 - `app/` — routes, layout, components (App Router)
 - `app/actions/auth.ts` — login/logout server actions
-- `app/login/` — login page + form
+- `app/login/` — login page + form (used when `auth_enabled` is true)
 - `app/*.scss` — global styles ported from the React app
 - `lib/config.ts` — reads `config.json`
-- `lib/auth.ts` — password hashing, credential check, session cookie (jose)
+- `lib/auth.ts` — the `auth_enabled` flag, password hashing, credential check,
+  session cookie (jose), and the `isAuthorized()` gate helper
 - `lib/stats.ts` — schedule → `Game[]` transform (ported from the React app)
 - `lib/types.ts` — the types that transform needs
 
@@ -149,10 +167,12 @@ cd /home/mlb-underground/nextjs
 npm ci
 ```
 
-### Setup config file by adding a user and a hash for the password and your MLB credentials
+### Setup config file with your MLB credentials (and, if you want site login, a user + AUTH_SECRET)
 
 ```bash
 cp config.example.json config.json
+# For an open site, just fill in mlb_username / mlb_password and leave auth_enabled false.
+# To require site login, set auth_enabled true, add a user hash, and set AUTH_SECRET:
 npm run hash -- 'your-real-password'   # copy the printed hash into config.json
 vi config.json
 echo "AUTH_SECRET=$(openssl rand -base64 32)" > .env.production.local

@@ -1,4 +1,5 @@
 {
+  "auth_enabled": false,
   "users": [
     { "id": "1", "username": "adam", "password": "<sha1 hash - run: npm run hash -- yourpassword>" }
   ],

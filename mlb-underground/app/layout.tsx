@@ -13,7 +13,7 @@ import './video.scss';
 import 'video.js/dist/video-js.css';
 import Nav from './components/Nav';
 import { MLBContextProvider } from './contexts/MLBContext';
-import { getSession } from '@/lib/auth';
+import { authEnabled, getSession } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: 'MLB Underground',
@@ -21,13 +21,17 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const enabled = authEnabled();
+  const session = enabled ? await getSession() : null;
+  // The site is "active" (MLB token flow runs, status dot shows) whenever
+  // content is visible: always when auth is off, or once signed in when on.
+  const active = !enabled || !!session;
 
   return (
     <html lang="en">
       <body>
-        <MLBContextProvider isLoggedIn={!!session}>
-          <Nav username={session?.username ?? null} />
+        <MLBContextProvider active={active}>
+          <Nav username={session?.username ?? null} active={active} />
           {children}
         </MLBContextProvider>
       </body>

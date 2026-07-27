@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import GamesView from './GamesView';
 
-// Isolate GamesView's own logic (session gate, date nav, empty vs list) from
-// the schedule transform and the card rendering.
+// Isolate GamesView's own logic (auth gate, date nav, empty vs list) from the
+// schedule transform and the card rendering.
 // Relative paths so jest's resolver finds them; the '@/lib/*' imports below
 // resolve to the same modules and pick up these mocks.
-jest.mock('../../lib/auth', () => ({ getSession: jest.fn() }));
+jest.mock('../../lib/auth', () => ({ isAuthorized: jest.fn() }));
 jest.mock('../../lib/stats', () => ({ gamesData: jest.fn(), sortGames: jest.fn() }));
 jest.mock('./GameCard', () => ({
   __esModule: true,
@@ -21,10 +21,10 @@ const redirect = jest.fn((_url: string) => {
 });
 jest.mock('next/navigation', () => ({ redirect: (url: string) => redirect(url) }));
 
-import { getSession } from '@/lib/auth';
+import { isAuthorized } from '@/lib/auth';
 import { gamesData, sortGames } from '@/lib/stats';
 
-const mockedSession = getSession as jest.Mock;
+const mockedAuth = isAuthorized as jest.Mock;
 const mockedSort = sortGames as jest.Mock;
 
 // Render whatever the async server component returns.
@@ -35,19 +35,20 @@ beforeEach(() => {
   redirect.mockImplementation(() => {
     throw new Error('NEXT_REDIRECT');
   });
+  // Authorized by default (mirrors the auth-off demo); individual tests override.
+  mockedAuth.mockResolvedValue(true);
   (gamesData as jest.Mock).mockReturnValue([]);
   global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ dates: [] }) }) as unknown as typeof fetch;
 });
 
 describe('<GamesView />', () => {
-  it('redirects to /login when there is no session', async () => {
-    mockedSession.mockResolvedValue(null);
+  it('redirects to /login when not authorized (auth on, no session)', async () => {
+    mockedAuth.mockResolvedValue(false);
     await expect(renderView({ date: '2026-07-25' })).rejects.toThrow('NEXT_REDIRECT');
     expect(redirect).toHaveBeenCalledWith('/login');
   });
 
   it('shows the "no games" message when the schedule is empty', async () => {
-    mockedSession.mockResolvedValue({ id: '7', username: 'adam' });
     mockedSort.mockReturnValue([]);
 
     await renderView({ date: '2026-07-25' });
@@ -57,7 +58,6 @@ describe('<GamesView />', () => {
   });
 
   it('renders a GameCard per game and the formatted current date', async () => {
-    mockedSession.mockResolvedValue({ id: '7', username: 'adam' });
     mockedSort.mockReturnValue([
       { gameId: '1', title: 'Away @ Home' },
       { gameId: '2', title: 'Guests @ Hosts' },
@@ -73,7 +73,6 @@ describe('<GamesView />', () => {
   });
 
   it('defaults to today (Eastern) when no date is provided', async () => {
-    mockedSession.mockResolvedValue({ id: '7', username: 'adam' });
     mockedSort.mockReturnValue([]);
 
     // No date arg -> exercises the easternToday() default path.
@@ -84,7 +83,6 @@ describe('<GamesView />', () => {
   });
 
   it('renders no games when the schedule request is not ok', async () => {
-    mockedSession.mockResolvedValue({ id: '7', username: 'adam' });
     global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({}) }) as unknown as typeof fetch;
 
     await renderView({ date: '2026-07-25' });
@@ -95,7 +93,6 @@ describe('<GamesView />', () => {
   });
 
   it('builds prev/next date links around the current date', async () => {
-    mockedSession.mockResolvedValue({ id: '7', username: 'adam' });
     mockedSort.mockReturnValue([]);
 
     await renderView({ date: '2026-07-25' });

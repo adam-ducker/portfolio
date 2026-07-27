@@ -2,11 +2,12 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-// The MLB Okta token flow now runs server-side (see lib/mlbAuth.ts +
-// /api/mlb/refresh). This provider is just a thin client: once the app user is
-// signed in it pings the refresh route on mount and on an interval, and exposes
+// The MLB Okta token flow runs server-side (see lib/mlbAuth.ts +
+// /api/mlb/refresh). This provider is just a thin client: while the site is
+// active it pings the refresh route on mount and on an interval, and exposes
 // the {title,status} the nav's status dot renders. No MLB credentials or PKCE
-// ever touch the browser now.
+// ever touch the browser. "active" is true whenever content is visible — always
+// when site auth is off, or once signed in when it's on.
 
 export interface MLBContextType {
   title: string;
@@ -14,7 +15,7 @@ export interface MLBContextType {
 }
 
 interface MLBContextProviderProps {
-  isLoggedIn: boolean;
+  active: boolean;
   children: ReactNode;
 }
 
@@ -23,12 +24,12 @@ const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const MLBContext = createContext<MLBContextType>({ title: '', status: '' });
 
-export const MLBContextProvider = ({ isLoggedIn, children }: MLBContextProviderProps) => {
+export const MLBContextProvider = ({ active, children }: MLBContextProviderProps) => {
   const [title, setTitle] = useState('');
   const [status, setStatus] = useState('normal');
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!active) {
       return;
     }
 
@@ -56,7 +57,7 @@ export const MLBContextProvider = ({ isLoggedIn, children }: MLBContextProviderP
       cancelled = true;
       clearInterval(id);
     };
-  }, [isLoggedIn]);
+  }, [active]);
 
   return <MLBContext.Provider value={{ title, status }}>{children}</MLBContext.Provider>;
 };

@@ -12,6 +12,11 @@ export type ConfigUser = {
 };
 
 export type Config = {
+  // Site login toggle. When false or omitted (the default), the site itself
+  // needs no login — every page and API route is open. The MLB.com token flow
+  // is unaffected either way. Set to true to require signing in as one of
+  // `users`.
+  auth_enabled?: boolean;
   users: ConfigUser[];
   mlb_username: string;
   mlb_password: string;

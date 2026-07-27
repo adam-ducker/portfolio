@@ -15,12 +15,12 @@ afterEach(() => {
 });
 
 describe('MLBContextProvider', () => {
-  it('does not call the refresh route when the user is not logged in', () => {
+  it('does not call the refresh route when inactive', () => {
     const fetchMock = jest.fn();
     global.fetch = fetchMock as unknown as typeof fetch;
 
     render(
-      <MLBContextProvider isLoggedIn={false}>
+      <MLBContextProvider active={false}>
         <Consumer />
       </MLBContextProvider>
     );
@@ -37,7 +37,7 @@ describe('MLBContextProvider', () => {
     global.fetch = fetchMock as unknown as typeof fetch;
 
     render(
-      <MLBContextProvider isLoggedIn>
+      <MLBContextProvider active>
         <Consumer />
       </MLBContextProvider>
     );
@@ -50,7 +50,7 @@ describe('MLBContextProvider', () => {
     global.fetch = jest.fn().mockResolvedValue({ json: async () => ({}) }) as unknown as typeof fetch;
 
     render(
-      <MLBContextProvider isLoggedIn>
+      <MLBContextProvider active>
         <Consumer />
       </MLBContextProvider>
     );
@@ -62,7 +62,7 @@ describe('MLBContextProvider', () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('network down')) as unknown as typeof fetch;
 
     render(
-      <MLBContextProvider isLoggedIn>
+      <MLBContextProvider active>
         <Consumer />
       </MLBContextProvider>
     );
@@ -78,7 +78,7 @@ describe('MLBContextProvider', () => {
     global.fetch = fetchMock as unknown as typeof fetch;
 
     render(
-      <MLBContextProvider isLoggedIn>
+      <MLBContextProvider active>
         <Consumer />
       </MLBContextProvider>
     );

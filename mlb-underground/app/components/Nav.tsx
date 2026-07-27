@@ -6,9 +6,10 @@ import useMLBContext from '@/app/contexts/MLBContext';
 
 type NavProps = {
   username: string | null;
+  active: boolean;
 };
 
-const Nav = ({ username }: NavProps) => {
+const Nav = ({ username, active }: NavProps) => {
   const { title, status } = useMLBContext();
 
   return (
@@ -28,7 +29,7 @@ const Nav = ({ username }: NavProps) => {
         </ul>
       )}
 
-      {username && <div className={`mlb-bug ${status}`} title={title}></div>}
+      {(active || username) && <div className={`mlb-bug ${status}`} title={title}></div>}
     </nav>
   );
 };

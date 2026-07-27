@@ -24,27 +24,34 @@ afterAll(() => {
 
 describe('<Nav />', () => {
   it('always renders the home-brand link', () => {
-    render(<Nav username={null} />);
+    render(<Nav username={null} active={false} />);
     const brand = screen.getByRole('link', { name: 'MLB Underground' });
     expect(brand).toHaveAttribute('href', '/');
   });
 
   it('shows the greeting, a Log Out button, and the status dot when signed in', () => {
-    const { container } = render(<Nav username="adam" />);
+    const { container } = render(<Nav username="adam" active />);
     expect(screen.getByText(/Hi, adam/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Log Out' })).toBeInTheDocument();
     expect(container.querySelector('.mlb-bug')).toBeInTheDocument();
   });
 
-  it('hides the greeting, Log Out, and status dot when signed out', () => {
-    const { container } = render(<Nav username={null} />);
+  it('shows the status dot but no greeting/Log Out when active with no session (auth off)', () => {
+    const { container } = render(<Nav username={null} active />);
+    expect(screen.queryByText(/Hi,/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Log Out' })).not.toBeInTheDocument();
+    expect(container.querySelector('.mlb-bug')).toBeInTheDocument();
+  });
+
+  it('hides the greeting, Log Out, and status dot when inactive and signed out', () => {
+    const { container } = render(<Nav username={null} active={false} />);
     expect(screen.queryByText(/Hi,/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Log Out' })).not.toBeInTheDocument();
     expect(container.querySelector('.mlb-bug')).not.toBeInTheDocument();
   });
 
   it('defaults the status dot to the context default when no provider wraps it', () => {
-    const { container } = render(<Nav username="adam" />);
+    const { container } = render(<Nav username="adam" active />);
     // Default context is {title:'', status:''} -> class is just "mlb-bug".
     expect(container.querySelector('.mlb-bug')?.className.trim()).toBe('mlb-bug');
   });

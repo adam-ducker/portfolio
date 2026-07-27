@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { format } from 'date-fns';
-import { getSession } from '@/lib/auth';
+import { isAuthorized } from '@/lib/auth';
 import { getConfig } from '@/lib/config';
 import { fetchMlbTokens, parseJwt, MlbTokens } from '@/lib/mlbAuth';
 
@@ -64,8 +64,7 @@ function isValid(accessToken: string): boolean {
 }
 
 export async function POST() {
-  const session = await getSession();
-  if (!session) {
+  if (!(await isAuthorized())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

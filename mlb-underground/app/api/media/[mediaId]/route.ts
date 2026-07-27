@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getSession } from '@/lib/auth';
+import { isAuthorized } from '@/lib/auth';
 import { getConfig } from '@/lib/config';
 
 // Ported from the PHP mlb.php: obtain an HLS stream URL from the MLB media
@@ -122,8 +122,7 @@ async function getStream(
 }
 
 export async function GET(_request: Request, { params }: { params: { mediaId: string } }) {
-  const session = await getSession();
-  if (!session) {
+  if (!(await isAuthorized())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
