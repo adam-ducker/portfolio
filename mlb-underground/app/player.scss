@@ -28,8 +28,20 @@
         }
 
         video {
-            background: url("//i.imgur.com/lKhS5pj.jpeg");
+            background: url("/baseball.jpeg");
             background-size: contain;
+        }
+
+        // In fullscreen the 16:9 video letterboxes against the screen's aspect
+        // ratio; hide the placeholder image so it can't show through the bars
+        // or cover the screen before playback.
+        .vjs-fullscreen {
+            video {
+                background: #000;
+            }
+            .vjs-poster {
+                display: none;
+            }
         }
 
         .player-wait {

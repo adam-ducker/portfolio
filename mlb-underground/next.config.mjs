@@ -12,12 +12,11 @@ const nextConfig = {
   },
   images: {
     // Hosts next/image is allowed to optimize. Video thumbnails come from MLB's
-    // CMS (img.mlbstatic.com and friends), and the player placeholder is on
-    // imgur. Headshots/logos are still loaded via plain <div> backgrounds.
+    // CMS (img.mlbstatic.com and friends). The player placeholder is a local
+    // image in /public. Headshots/logos are loaded via plain <div> backgrounds.
     remotePatterns: [
       { protocol: 'https', hostname: '**.mlbstatic.com' },
       { protocol: 'https', hostname: 'content.mlb.com' },
-      { protocol: 'https', hostname: 'i.imgur.com' },
     ],
   },
 };

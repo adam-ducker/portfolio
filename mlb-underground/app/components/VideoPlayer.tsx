@@ -19,7 +19,7 @@ const VideoPlayer = (props: VideoPlayerProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef = useRef<any | null>(null);
 
-  const { url, poster = '//i.imgur.com/lKhS5pj.jpeg', dvr: enableDvr = true } = props;
+  const { url, poster = '/baseball.jpeg', dvr: enableDvr = true } = props;
 
   useEffect(() => {
     if (!playerRef.current) {

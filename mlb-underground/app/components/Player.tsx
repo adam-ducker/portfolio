@@ -100,7 +100,7 @@ const Player = ({ gameId, feedType, mediaId }: PlayerProps) => {
           {stream.url === '' && (
             <div className="player-wait">
               <Image
-                src="https://i.imgur.com/lKhS5pj.jpeg"
+                src="/baseball.jpeg"
                 alt="MLB Underground"
                 fill
                 sizes="100vw"
