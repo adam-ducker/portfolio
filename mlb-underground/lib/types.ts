@@ -60,12 +60,6 @@ export type Stream = {
   errors: StreamError[];
 }
   
-export interface User {
-  accessToken: string;
-  username: string;
-  id: number;
-}
-  
 export interface Line {
   gameState: string;
   currentInning: number;

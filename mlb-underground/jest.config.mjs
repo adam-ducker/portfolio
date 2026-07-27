@@ -10,6 +10,10 @@ const config = {
   // auth, config, mlbAuth, videos) opt out with a `@jest-environment node`
   // docblock at the top of the file.
   testEnvironment: 'jsdom',
+  // The app writes MLB token/stream caches into tmp/ at runtime; never let
+  // Jest scan that working dir for tests or modules.
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/tmp/'],
+  modulePathIgnorePatterns: ['<rootDir>/tmp/'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   collectCoverageFrom: [
     'lib/**/*.ts',
