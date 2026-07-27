@@ -1,5 +1,5 @@
 import { render, screen, act, waitFor } from '@testing-library/react';
-import { MLBContextProvider, useMLBContext } from './MLBContext';
+import useMLBContextDefault, { MLBContextProvider, useMLBContext } from './MLBContext';
 
 // A tiny consumer that surfaces the context values as text for assertions.
 const Consumer = () => {
@@ -96,4 +96,9 @@ describe('MLBContextProvider', () => {
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it('exposes the hook as both its named and default export', () => {
+    expect(useMLBContextDefault).toBe(useMLBContext);
+  });
+
 });

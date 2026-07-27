@@ -43,7 +43,7 @@ function expiryTitle(accessToken: string): string {
   try {
     const jwt = parseJwt(accessToken);
     if (jwt.exp) {
-      return 'Expires: ' + format(new Date(jwt.exp * 1000), 'yyyy-MM-dd h:mm aa');
+      return 'MLB Login Expires: ' + format(new Date(jwt.exp * 1000), 'yyyy-MM-dd h:mm aa');
     }
   } catch {
     // ignore

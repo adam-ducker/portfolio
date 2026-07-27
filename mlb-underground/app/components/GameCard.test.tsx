@@ -118,4 +118,40 @@ describe('<GameCard />', () => {
     render(<GameCard game={makeGame({}, { player_1: emptyPlayer })} />);
     expect(screen.queryByText('Ace Pitcher')).not.toBeInTheDocument();
   });
+
+  it("renders the matchup player headshots using each player id", () => {
+    const { container } = render(
+      <GameCard
+        game={makeGame(
+          {},
+          {
+            player_1: { id: 111, name: "Ace Pitcher", stats: "2.50 ERA" },
+            player_2: { id: 222, name: "Big Bat", stats: ".305 AVG" },
+          }
+        )}
+      />
+    );
+    const images = container.querySelectorAll(".matchup .player .image");
+    expect(images).toHaveLength(2);
+    expect(images[0]).toHaveStyle({ backgroundImage: expect.stringContaining("/60x60/111@2x.png") });
+    expect(images[1]).toHaveStyle({ backgroundImage: expect.stringContaining("/60x60/222@2x.png") });
+  });
+
+  it("labels each base with the runner on it and marks only occupied bases \"on\"", () => {
+    const { container } = render(
+      <GameCard
+        game={makeGame({ category: "live" }, { first: "Runner One", second: "", third: "Runner Three" })}
+      />
+    );
+    const first = container.querySelector(".base.first");
+    const second = container.querySelector(".base.second");
+    const third = container.querySelector(".base.third");
+    expect(first).toHaveAttribute("title", "Runner One");
+    expect(first).toHaveClass("on");
+    expect(second).toHaveAttribute("title", "");
+    expect(second).not.toHaveClass("on");
+    expect(third).toHaveAttribute("title", "Runner Three");
+    expect(third).toHaveClass("on");
+  });
+
 });

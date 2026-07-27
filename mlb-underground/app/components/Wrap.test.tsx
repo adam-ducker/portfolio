@@ -34,4 +34,13 @@ describe('<Wrap />', () => {
     expect(screen.queryByText('L: Losing Pitcher')).not.toBeInTheDocument();
     expect(screen.queryByText(/only losers today/i)).not.toBeInTheDocument();
   });
+
+  it("renders winner and loser headshots using their player ids", () => {
+    const { container } = render(<Wrap wrap={wrap({ winnerId: "200", loserId: "201" })} />);
+    const images = container.querySelectorAll(".sidebar-item-player .image");
+    expect(images).toHaveLength(2);
+    expect(images[0]).toHaveStyle({ backgroundImage: expect.stringContaining("/60x60/200@2x.png") });
+    expect(images[1]).toHaveStyle({ backgroundImage: expect.stringContaining("/60x60/201@2x.png") });
+  });
+
 });
