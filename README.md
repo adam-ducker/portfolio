@@ -10,7 +10,7 @@ This is the latest version of my private website I call MLB Underground. It allo
 
 This has changed over the years. At times the front end was React and then Angular.  The backend alternated between PHP and Ruby on Rails. This Next.js based combination of the front and back represents a big step forward in improving how I work on bugs or enhance the application and how I deploy it for my own private use.
 
-A lot has changed over the years and I just had to roll with it. MLB has changed their streaming service provider, they've changed how their authentication flow works. They've placed tigther and tigther CORs restrictions and geolocation based protections on streams. It's been a wild ride but I really love what I've built and it allows me to easily enjoy paid MLB content the way I like. This will likely never be a finished project. I'm always tinkering with it.
+It's not just my own code that has changed over the years either. MLB has changed their streaming service provider, they've changed how their authentication flow works. They've placed tigther and tigther CORs restrictions and geolocation based protections on streams. It's been a wild ride but I really love what I've built and it allows me to easily enjoy paid MLB content the way I like. This will likely never be a finished project. I'm always tinkering with it.
 
 ### Interesting aspects
 
