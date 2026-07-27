@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { format } from 'date-fns';
 import { isAuthorized } from '@/lib/auth';
-import { getConfig } from '@/lib/config';
+import { getConfig, TMP_DIR } from '@/lib/config';
 import { fetchMlbTokens, parseJwt, MlbTokens } from '@/lib/mlbAuth';
 
 // Ensures a fresh MLB access token exists server-side, running the Okta flow
@@ -71,7 +71,7 @@ export async function POST() {
   const config = getConfig();
 
   // Already have a valid token — nothing to do.
-  const current = readTokens(config.tmp_dir);
+  const current = readTokens(TMP_DIR);
   if (isValid(current.access_token)) {
     return NextResponse.json({ title: expiryTitle(current.access_token), status: 'success' });
   }
@@ -82,7 +82,7 @@ export async function POST() {
 
   try {
     const tokens = await fetchMlbTokens(config.mlb_username, config.mlb_password);
-    writeTokens(config.tmp_dir, tokens);
+    writeTokens(TMP_DIR, tokens);
     return NextResponse.json({ title: expiryTitle(tokens.access_token), status: 'success' });
   } catch {
     return NextResponse.json({ title: '', status: 'error', message: 'MLB sign-in failed' });

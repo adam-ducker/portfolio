@@ -20,8 +20,11 @@ export type Config = {
   users: ConfigUser[];
   mlb_username: string;
   mlb_password: string;
-  tmp_dir: string;
 };
+
+// Where the server caches the MLB token bundle and resolved stream URLs at
+// runtime — a fixed working dir at the project root (git-ignored).
+export const TMP_DIR = 'tmp';
 
 export function getConfig(): Config {
   const file = path.join(process.cwd(), 'config.json');

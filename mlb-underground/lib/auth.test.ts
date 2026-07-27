@@ -38,7 +38,6 @@ const baseConfig = (over: Record<string, unknown> = {}) => ({
   users: [{ id: '7', username: 'adam', password: CHANGEME_HASH }],
   mlb_username: '',
   mlb_password: '',
-  tmp_dir: '',
   ...over,
 });
 

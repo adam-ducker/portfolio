@@ -4,6 +4,5 @@
     { "id": "1", "username": "adam", "password": "<sha1 hash - run: npm run hash -- yourpassword>" }
   ],
   "mlb_username": "",
-  "mlb_password": "",
-  "tmp_dir": "tmp"
+  "mlb_password": ""
 }

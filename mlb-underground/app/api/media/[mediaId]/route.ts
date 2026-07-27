@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { isAuthorized } from '@/lib/auth';
-import { getConfig } from '@/lib/config';
+import { TMP_DIR } from '@/lib/config';
 
 // Ported from the PHP mlb.php: obtain an HLS stream URL from the MLB media
 // gateway (initSession -> initPlaybackSession) using the stored access token.
@@ -127,15 +127,14 @@ export async function GET(_request: Request, { params }: { params: { mediaId: st
   }
 
   const { mediaId } = params;
-  const config = getConfig();
-  const token = readAccessToken(config.tmp_dir);
+  const token = readAccessToken(TMP_DIR);
 
   if (!token) {
     return NextResponse.json({ url: '', startTime: '', errors: [SIGN_IN_ERROR] });
   }
 
   // Cache the resolved URL per media id (like the PHP stream-<id>.txt).
-  const cacheFile = path.join(config.tmp_dir, `stream-${mediaId}.txt`);
+  const cacheFile = path.join(TMP_DIR, `stream-${mediaId}.txt`);
   let cached = true;
   let url = '';
 
@@ -149,7 +148,7 @@ export async function GET(_request: Request, { params }: { params: { mediaId: st
 
   if (!url) {
     cached = false;
-    const result = await getStream(mediaId, token, config.tmp_dir);
+    const result = await getStream(mediaId, token, TMP_DIR);
     if (result.errors.length) {
       return NextResponse.json({ url: '', startTime: '', errors: result.errors });
     }

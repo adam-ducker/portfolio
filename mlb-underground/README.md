@@ -20,7 +20,6 @@ Fields:
 - `users` — the site login accounts (only used when `auth_enabled` is `true`).
 - `mlb_username` / `mlb_password` — the MLB.com credentials used for the
   server-side token flow.
-- `tmp_dir` — where the server caches the MLB token bundle and resolved streams.
 
 Site-login passwords are stored hashed with the same scheme as the PHP app —
 `sha1('salty-salt' . sha1(plaintext))` — so you can paste your existing

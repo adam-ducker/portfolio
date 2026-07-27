@@ -3,14 +3,13 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { getConfig } from './config';
+import { getConfig, TMP_DIR } from './config';
 
 describe('getConfig', () => {
   const sample = {
     users: [{ id: '1', username: 'adam', password: 'hashed' }],
     mlb_username: 'mlbuser',
     mlb_password: 'mlbpass',
-    tmp_dir: '/tmp/mlb',
   };
 
   afterEach(() => {
@@ -43,4 +42,9 @@ describe('getConfig', () => {
     });
     expect(() => getConfig()).toThrow('ENOENT');
   });
+
+  it('exposes the fixed runtime cache dir as TMP_DIR', () => {
+    expect(TMP_DIR).toBe('tmp');
+  });
+
 });
