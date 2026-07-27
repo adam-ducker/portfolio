@@ -23,7 +23,7 @@ Fields:
 - `mlb_username` / `mlb_password` — the MLB.com credentials used for the
   server-side token flow.
 
-## Develop
+## Running
 
 This site is using modern Node.js and has been tested so far on v26.2.0. 
 
