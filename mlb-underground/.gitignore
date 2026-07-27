@@ -1,0 +1,32 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# real user config (contains password hashes / MLB creds) — keep out of git
+/config.json
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# where we store cached tokens and urls
+/tmp/*

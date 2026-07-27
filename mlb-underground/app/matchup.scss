@@ -1,0 +1,33 @@
+.matchup {
+    .matchup-player { 
+        padding-left: 80px;
+        min-height: 90px;
+        position: relative;
+        width: 100%;
+        box-sizing: border-box;
+        .image {
+            display: block;
+        }
+    }        
+
+    .matchup-label {
+        color: var(--matchup-label);
+    }
+
+    .matchup-name {
+        color: var(--link-hover-color);
+        font-weight: 400;
+    }
+
+    img {
+        background: var(--border-color);
+        border-radius: 100px;
+        width: 60px;
+        height: 60px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        border: 1px solid var(--border-color);
+    }
+    
+}

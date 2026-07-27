@@ -1,0 +1,94 @@
+.linescore {
+  font-size: 14px;
+  font-weight: 300;
+  padding: 10px 0 10px 0;
+
+  h3 {
+    text-align: center;
+    padding: 5px 0 10px;
+    margin: 0;
+  }
+
+  table {
+    margin: 0 auto;
+    font-weight: none;
+    tr.title td {
+      width: auto;
+    }
+    tr.labels {
+      td {
+        border-color: var(--border-clear-color);
+        background: none;
+        color: var(--text-color);
+      }
+    }
+    td {
+      border: 1px solid var(--header-background-color);
+      background: var(--border-clear-color);
+
+
+      line-height: 25px;
+      text-align: center;
+      width: 25px;
+      height: 25px;
+      float: left;
+      margin: 2px;
+
+      position: relative;
+      color: var(--border-linescore-color);
+      &.active {
+        color: var(--border-linescore-color);
+        border-color: var(--border-linescore-color);
+        background: var(--header-background-color);
+      }
+      &.last {
+        border-color: var(--border-clear-color);
+        background: none;
+      }
+      &.score {
+        color: var(--text-color);
+      }
+      &.current {
+        border-color: var(--text-color);
+        color: var(--text-color);
+        background: var(--header-background-color);
+      }
+      &.runs {
+        margin-left: 20px;
+        &:before {
+          content: " ";
+          height: 36px;
+          width: 1px;
+          background: var(--border-linescore-color);
+          display: block;
+          position: absolute;
+          left: -7px;
+          top: 0;
+          z-index: 1;
+        }
+      }
+      &:first-child {
+        width: 40px;
+        background: none;
+        border-color: var(--border-clear-color);
+        color: var(--text-color);
+        text-align: right;
+        padding-right: 5px;
+      }
+    }
+    @media only screen and (max-width: 700px) { 
+      td {
+        width: 15px;
+        height: 15px;
+        line-height: 15px;
+        font-size: 10px;
+        &.runs {
+          margin-left: 13px;
+          &:before {
+            height: 21px;
+          }
+        }
+      }
+    }
+  }
+}
