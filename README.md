@@ -6,7 +6,7 @@ There's not much here yet but that will change. I've never been one to show off 
 
 ## MLB Underground — Next.js
 
-This is the latest version of my private website I call MLB Undergroud. It allows me to play MLB.tv streams and other MLB video content under my own custom interface. 
+This is the latest version of my private website I call MLB Underground. It allows me to play MLB.tv streams and other MLB video content under my own custom interface. 
 
 This has changed over the years. At times the front end was React and then Angular.  The backend alternated between PHP and Ruby on Rails. This Next.js based combination of the front and back represents a big step forward in improving how I work on bugs or enhance the application and how I deploy it for my own private use.
 
