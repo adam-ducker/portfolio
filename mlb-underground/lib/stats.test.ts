@@ -191,15 +191,15 @@ describe('buildGameData', () => {
   };
 
   const homePlayers = {
-    ID100: makeBatter(100, 'Lead Off', '9', 1, { hits: 2, atBats: 4 }, { avg: '.305', ops: '.850', homeRuns: 12 }),
-    ID101: makeBatter(101, 'Second Bat', '10', 2, { hits: 1, atBats: 3 }, { avg: '.280', ops: '.790', homeRuns: 8 }),
-    ID102: makeBatter(102, 'Third Bat', '11', 3, { hits: 0, atBats: 2 }, { avg: '.312', ops: '.900', homeRuns: 20 }),
-    ID103: makeBatter(103, 'Cleanup', '12', 4, { hits: 1, atBats: 4 }, { avg: '.270', ops: '.760', homeRuns: 15 }),
-    ID104: makeBatter(104, 'Fifth', '13', 5, { hits: 0, atBats: 3 }, { avg: '.250', ops: '.700', homeRuns: 5 }),
-    ID105: makeBatter(105, 'Sixth', '14', 6, { hits: 2, atBats: 3 }, { avg: '.290', ops: '.810', homeRuns: 10 }),
-    ID106: makeBatter(106, 'Seventh', '15', 7, { hits: 1, atBats: 2 }, { avg: '.240', ops: '.680', homeRuns: 3 }),
-    ID107: makeBatter(107, 'Eighth', '16', 8, { hits: 0, atBats: 4 }, { avg: '.220', ops: '.640', homeRuns: 2 }),
-    ID108: makeBatter(108, 'Ninth', '17', 9, { hits: 1, atBats: 3 }, { avg: '.260', ops: '.720', homeRuns: 7 }),
+    ID100: makeBatter(100, 'Lead Off', '9', 100, { hits: 2, atBats: 4 }, { avg: '.305', ops: '.850', homeRuns: 12 }),
+    ID101: makeBatter(101, 'Second Bat', '10', 200, { hits: 1, atBats: 3 }, { avg: '.280', ops: '.790', homeRuns: 8 }),
+    ID102: makeBatter(102, 'Third Bat', '11', 300, { hits: 0, atBats: 2 }, { avg: '.312', ops: '.900', homeRuns: 20 }),
+    ID103: makeBatter(103, 'Cleanup', '12', 400, { hits: 1, atBats: 4 }, { avg: '.270', ops: '.760', homeRuns: 15 }),
+    ID104: makeBatter(104, 'Fifth', '13', 500, { hits: 0, atBats: 3 }, { avg: '.250', ops: '.700', homeRuns: 5 }),
+    ID105: makeBatter(105, 'Sixth', '14', 600, { hits: 2, atBats: 3 }, { avg: '.290', ops: '.810', homeRuns: 10 }),
+    ID106: makeBatter(106, 'Seventh', '15', 700, { hits: 1, atBats: 2 }, { avg: '.240', ops: '.680', homeRuns: 3 }),
+    ID107: makeBatter(107, 'Eighth', '16', 800, { hits: 0, atBats: 4 }, { avg: '.220', ops: '.640', homeRuns: 2 }),
+    ID108: makeBatter(108, 'Ninth', '17', 900, { hits: 1, atBats: 3 }, { avg: '.260', ops: '.720', homeRuns: 7 }),
   };
 
   const json = {
@@ -305,7 +305,7 @@ describe('buildGameData', () => {
     expect(matchup.batter.title).toBe('Lead Off | #9 | Batting Right');
     expect(matchup.batter.stats).toBe('2-4, .305 AVG, .850 OPS, 12 HR');
 
-    // Current batter is #1 in the order, so on-deck is #2 and in-hole is #3.
+    // Batter is slot 1, so on-deck is slot 2 and in-hole is slot 3 (current occupants).
     expect(matchup.onDeck.id).toBe('101');
     expect(matchup.onDeck.title).toBe('Second Bat | #10');
     expect(matchup.onDeck.stats).toBe('1-3, .280 AVG, .790 OPS, 8 HR');
@@ -522,9 +522,9 @@ describe('stats.ts branch coverage', () => {
         teams: {
           home: {
             players: {
-              ID100: makeBatter(100, 'Lead Off', '9', 1),
-              ID101: makeBatter(101, 'Second Bat', '10', 2),
-              ID102: makeBatter(102, 'Third Bat', '11', 3),
+              ID100: makeBatter(100, 'Lead Off', '9', 100),
+              ID101: makeBatter(101, 'Second Bat', '10', 200),
+              ID102: makeBatter(102, 'Third Bat', '11', 300),
             },
             pitchers: [],
             batters: [100, 101, 102],
@@ -608,20 +608,26 @@ describe('stats.ts branch coverage', () => {
     expect(matchup.onDeck.id).toBe('');
   });
 
-  it('wraps on-deck/in-hole around the away order for the last batter', () => {
+  it('filters out replaced players so on-deck/in-hole reflect the current lineup', () => {
     const j = liveGame();
+    // Away team batting. Slot 3's starter (302) was pinch-hit for by 305, who
+    // takes the slot (battingOrder 301 > 300). The replaced starter must no
+    // longer appear as on-deck / in-the-hole.
     j.liveData.boxscore.teams.away.players = {
-      ID300: makeBatter(300, 'A1', '1', 1),
-      ID301: makeBatter(301, 'A2', '2', 2),
-      ID308: makeBatter(308, 'A9', '9', 9),
+      ID300: makeBatter(300, 'A1', '1', 100),
+      ID301: makeBatter(301, 'A2', '2', 200),
+      ID302: makeBatter(302, 'A3 Starter', '3', 300),
+      ID305: makeBatter(305, 'A3 Pinch Hitter', '25', 301),
       ID200: makePitcher(200, 'Ace Pitcher', '45'),
     };
-    j.liveData.boxscore.teams.away.batters = [300, 301, 302, 303, 304, 305, 306, 307, 308];
-    j.liveData.boxscore.teams.home.batters = [];
-    j.liveData.plays.currentPlay.matchup.batter = { id: 308 };
+    j.liveData.boxscore.teams.home.players = {};
+    j.liveData.plays.currentPlay.matchup.batter = { id: 301 };
     const { matchup } = build(j);
-    expect(matchup.onDeck.id).toBe('300'); // 8 + 1 = 9 -> wrap -> 0
-    expect(matchup.inHole.id).toBe('301'); // 8 + 2 = 10 -> wrap -> 1
+    // Batter is slot 2 (301). On-deck is slot 3's CURRENT occupant (the pinch
+    // hitter 305), not the replaced starter (302); in-hole wraps to slot 1.
+    expect(matchup.onDeck.id).toBe('305');
+    expect(matchup.onDeck.title).toBe('A3 Pinch Hitter | #25');
+    expect(matchup.inHole.id).toBe('300');
   });
 
   it('handles a final game: Final title, winning wrap, and x/blank in the box', () => {

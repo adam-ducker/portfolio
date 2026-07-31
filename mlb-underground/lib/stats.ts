@@ -799,38 +799,39 @@ const liveGameTeams = (json: LiveJson) => {
     return teams;
 };
 
-const liveNextBatterIndexes = (json: LiveJson, playerId: number) => {
+// Build a team's current batting order: the active occupant of each lineup
+// slot, in slot order, with anyone no longer in the game filtered out.
+// battingOrder encodes the slot in its hundreds and the substitution depth in
+// its units (400 = slot-4 starter, 401 = the pinch hitter who replaced them),
+// so within a slot the highest battingOrder is whoever is currently batting.
+const activeBattingOrder = (players: { [key: string]: LivePlayerJson }): number[] => {
+    const batters = Object.values(players)
+        .filter((player) => player.battingOrder)
+        .sort((a, b) => a.battingOrder - b.battingOrder);
 
-    const awayBattingOrder = json.liveData.boxscore.teams.away.batters;
+    // Ascending order means a slot's deeper substitutes overwrite the players
+    // they replaced, so each slot is left holding its current occupant; the Map
+    // preserves first-seen (slot) order for the values.
+    const currentBySlot = new Map<number, number>();
+    for (const player of batters) {
+        currentBySlot.set(Math.floor(player.battingOrder / 100), player.person.id);
+    }
+    return [...currentBySlot.values()];
+};
 
-    const homeBattingOrder = json.liveData.boxscore.teams.home.batters;
-    const awayBatterIndex = awayBattingOrder.indexOf(playerId);
-    const homeBatterIndex = homeBattingOrder.indexOf(playerId);
-    let order: number[] = [];
-    let onDeckIndex = -1;
-    let inHoleIndex = -1;
+const liveNextBatterIndexes = (json: LiveJson, playerId: number): number[] => {
+    const awayOrder = activeBattingOrder(json.liveData.boxscore.teams.away.players);
+    const homeOrder = activeBattingOrder(json.liveData.boxscore.teams.home.players);
 
-    if (awayBatterIndex >= 0) {
-        onDeckIndex = awayBatterIndex + 1;
-        inHoleIndex = awayBatterIndex + 2;
-        order = awayBattingOrder;
+    const awayIndex = awayOrder.indexOf(playerId);
+    const order = awayIndex >= 0 ? awayOrder : homeOrder;
+    const batterIndex = awayIndex >= 0 ? awayIndex : homeOrder.indexOf(playerId);
+    if (batterIndex < 0) {
+        return [];
     }
 
-    if (homeBatterIndex >= 0) {
-        onDeckIndex = homeBatterIndex + 1;
-        inHoleIndex = homeBatterIndex + 2;
-        order = homeBattingOrder;
-    }
-
-    if (onDeckIndex > 8) {
-        onDeckIndex = onDeckIndex - 9;
-    }
-
-    if (inHoleIndex > 8) {
-        inHoleIndex = inHoleIndex - 9;
-    }
-
-    return [order[onDeckIndex], order[inHoleIndex]];
+    // On-deck and in-the-hole are the next two active batters, wrapping around.
+    return [order[(batterIndex + 1) % order.length], order[(batterIndex + 2) % order.length]];
 };
 
 const livePitcherStats = (pitcher: LivePlayerJson) => {
