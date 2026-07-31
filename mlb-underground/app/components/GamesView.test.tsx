@@ -72,10 +72,10 @@ describe('<GamesView />', () => {
     expect(screen.getByText(/Saturday July 25th 2026/)).toBeInTheDocument();
   });
 
-  it('defaults to today (Eastern) when no date is provided', async () => {
+  it('defaults to today (server-local) when no date is provided', async () => {
     mockedSort.mockReturnValue([]);
 
-    // No date arg -> exercises the easternToday() default path.
+    // No date arg -> exercises the localToday() default path.
     await renderView({});
 
     expect(screen.getByText(/no games scheduled on this date/i)).toBeInTheDocument();

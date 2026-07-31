@@ -6,15 +6,18 @@ import { gamesData, sortGames } from '@/lib/stats';
 import { GamesJson } from '@/lib/types';
 import GameCard from './GameCard';
 
-// Today's date as yyyy-MM-dd in the league's timezone (US Eastern), so "today"
-// matches the schedule the API returns regardless of where the server runs.
-const easternToday = () =>
-  new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+// The server's local timezone (from the OS / TZ env). Used both to pick which
+// day counts as "today" and to tell the schedule API which zone to sort/show
+// game times in, so the day rolls over at local midnight instead of US Eastern.
+const localTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+// "Today" as yyyy-MM-dd in the server's local timezone.
+const localToday = () => new Date().toLocaleDateString('en-CA');
 
 const scheduleUrl = (date: string) =>
   'https://statsapi.mlb.com/api/v1/schedule?language=&sportId=1&date=' +
   date +
-  '&timeZone=America/New_York&sortBy=gameDate' +
+  '&timeZone=' + localTimeZone() + '&sortBy=gameDate' +
   '&hydrate=game(content(summary,media(epg))),broadcasts,linescore(matchup,runners),flags,team,review,person,stats,probablePitcher,decisions';
 
 async function fetchGames(date: string) {
@@ -27,7 +30,7 @@ async function fetchGames(date: string) {
 }
 
 type GamesViewProps = {
-  date?: string; // yyyy-MM-dd; defaults to today (Eastern)
+  date?: string; // yyyy-MM-dd; defaults to today (server-local)
 };
 
 const GamesView = async ({ date }: GamesViewProps) => {
@@ -37,7 +40,7 @@ const GamesView = async ({ date }: GamesViewProps) => {
     redirect('/login');
   }
 
-  const searchDate = date ?? easternToday();
+  const searchDate = date ?? localToday();
   // Parse at noon so timezone offsets can't shift the displayed day.
   const current = new Date(searchDate + 'T12:00:00');
 
