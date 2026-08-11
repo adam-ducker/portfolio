@@ -1,0 +1,118 @@
+a,
+a:active,
+a:hover,
+a:visited {
+	color: black;
+}
+
+body {
+	padding: 20px;
+	font-family: 'Arial', sans-serif;
+	margin: 0;
+	font-size: 13px;
+}
+
+table {
+	width: 100%;
+	border-top: 1px solid #ccc;
+	border-left: 1px solid #ccc;
+	margin-bottom: 10px;
+	clear: both;
+	border-collapse: collapse;
+}
+
+th {
+	background: #aaa;
+}
+
+tr:nth-child(odd) td {
+	background: #eee;
+}
+
+td,
+th {
+	text-align: left;
+	padding: 5px;
+	border-bottom: 1px solid #ccc;
+	border-right: 1px solid #ccc;
+	width: 10%;
+	white-space: nowrap;
+}
+
+td:first-child {
+	min-width: 120px;
+}
+
+.mono {
+	font-family: monospace;
+	min-width: 230px;
+}
+
+td.next {
+	min-width: 260px;
+}
+
+td.toughness {
+	min-width: 30px;
+}
+
+td.winners,
+td.losers {
+	min-width: 80px;
+}
+
+.left {
+}
+
+.right table {
+	width: auto;
+}
+
+.tabs {
+	width: 100%;
+	border-bottom: 1px solid #ccc;
+	font-size: 1px;
+}
+
+.tab {
+	display: inline-block;
+	border: 1px solid #ccc;
+	position: relative;
+	top: 1px;
+	border-radius: 5px 5px 0 0;
+	font-size: 13px;
+	margin-right: 10px;
+	color: #666;
+}
+
+.tab a {
+	display: block;
+	padding: 10px;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.tab.selected {
+	border-bottom: 1px solid #fff;
+	color: #000;
+}
+
+.tab a:hover {
+	text-decoration: underline;
+}
+
+.tab-content {
+	padding-top: 10px;
+	font-size: 13px;
+	display: none;
+}
+
+.tab-content.selected {
+	display: block;
+}
+
+.spacer {
+	height: 20px;
+	clear: both;
+	border: 1px solid red;
+}
