@@ -1,67 +1,75 @@
-# MLB Standings
+# React + TypeScript + Vite
 
-It's a fully client-side single-page app: the browser pulls live data straight
-from the public [MLB StatsAPI](https://statsapi.mlb.com) and renders a dense
-standings grid, so there's no backend to run.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## What it shows
+Currently, two official plugins are available:
 
-Five views, selected via `?tab=`:
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-| Tab       | `?tab=`      | Grouping                                              |
-| --------- | ------------ | ---------------------------------------------------- |
-| All       | _(none)_     | Selected team on its own row, then everyone by rank  |
-| League    | `league`     | National League / American League                    |
-| Divisions | `division`   | Six divisions                                        |
-| Wildcard  | `wildcard`   | Division leaders + wildcard field, per league        |
-| Playoffs  | `playoffs`   | _(placeholder — was never implemented on the original)_ |
+## React Compiler
 
-`?teamId=<id>` picks the "current" team (default `119`, the Dodgers). On the
-**All** tab that team is pulled out on top and a second table lists its
-remaining games with opponent records and probable pitchers.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-Columns: Record, Home, Away, GB (games back), E (elimination number), Rem
-(games remaining), RS/RA/Dif (runs), A500/B500 (record vs winning / losing
-teams), T (strength of remaining schedule), Streak (last 20 W/L), and the
-team's Next game (live score if in progress).
+## Expanding the ESLint configuration
 
-## Data sources
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-Four StatsAPI endpoints, fetched in parallel on load:
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-- `standings` — team records and rankings
-- `schedule` (last ~30 days → Nov 10) — for streaks and toughness
-- `schedule` (today → Dec 31, for the current team) — remaining games + probable pitchers
-- `schedule` (today, `hydrate=linescore`) — live in-progress games
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-## Project layout
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
-- `src/lib/mlb/types.ts` — StatsAPI response typings
-- `src/lib/mlb/models.ts` — `Team`, `Game`, `RemainingGame`, `formatDate`
-- `src/lib/mlb/standings.ts` — fetching, assembling, and grouping the data
-- `src/routes/+page.svelte` — tabs and tables
-- `src/app.css` — styles (a faithful copy of the original `screen.css`)
-
-## Develop
-
-```bash
-npm install
-npm run dev
 ```
 
-## Build
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-Produces a static SPA in `build/` (via `@sveltejs/adapter-static`):
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-```bash
-npm run build
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
 ```
-
-To serve it under a subpath (the original lived at `/mlb/`):
-
-```bash
-BASE_PATH=/mlb npm run build
-```
-
-All internal links use SvelteKit's `base`, so they follow `BASE_PATH`
-automatically.
