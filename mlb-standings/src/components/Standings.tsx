@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 
 interface StandingsProps {
   teamId: number; 
@@ -14,17 +14,17 @@ interface RecordSplit {
 
 interface TeamRecord { 
   team: {
-    id: number;
-    clubName: string;
-    league: { 
-      id: number; 
-      name: string;
-    };
-    division: { 
-      id: number; 
-      name: string;
-    };
-  }
+  id: number;
+  clubName: string;
+  league: { 
+    id: number; 
+    name: string;
+  };
+  division: { 
+    id: number; 
+    name: string;
+  };
+};
   sportRank: number;
   leagueRecord: RecordSplit;
   records: {
@@ -52,18 +52,78 @@ interface StandingsReponse {
   }[];
 }
 
+interface SeasonGamesReponse {
+  dates: {
+    games: GameRecord[];
+  }[];
+}
+
+interface GameRecord {
+  gameDate: string;
+  status: {
+    statusCode: string;
+  };
+  teams: {
+    away: {
+      team: {
+        id: number;
+        name: string;
+        score: number;
+      }
+    },
+    home: {
+      team: {
+        id: number;
+        name: string;
+        score: number;
+      }
+    }
+  };
+}
+
 const Standings = ({ teamId, standingsType }: StandingsProps) => {
+  const [loaded, setLoaded] = useState(false);
   const [teams, setTeams] = useState<TeamRecord[]>([]);
-  
-  const teamsFromStandings = (standings: StandingsReponse) => {
+  const [games, setGames] = useState<GameRecord[]>([]);
+
+  const formatDate = (iso:string) => {
+  const d = new Date(iso);
+    const parts = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).formatToParts(d).reduce((acc:any, p) => (acc[p.type] = p.value, acc), {});
+  const time = `${parts.hour}:${parts.minute}${parts.dayPeriod.toUpperCase()}`;
+  return `${parts.weekday} ${parts.month} ${parts.day} @ ${time}`;
+}
+
+  const gamesFromDates = (response: SeasonGamesReponse) => {
+    const games:GameRecord[] = [];
+    response.dates.forEach((date) => {
+		  date.games.forEach((game) => {
+				games.push(game);
+			});
+    });
+    return games;
+  }
+
+  const teamsFromStandings = (response: StandingsReponse) => {
     const teams:TeamRecord[] = [];
-		standings.records.forEach((division) => {
+		response.records.forEach((division) => {
 			division.teamRecords.forEach((team) => {
-        console.log(team);
 				teams.push(team);
 			});
 		});
     return teams;
+  }
+
+  const attemptToLoad = () => {
+    if(teams.length) {
+      setLoaded(true);
+    }
   }
 
   const fetchStandings = useCallback(async () => {
@@ -73,8 +133,25 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
         );
         const result = await response.json();
         const teams = teamsFromStandings(result);
-
         setTeams(teams);
+    } catch (err) {
+      //  setError(err.message);
+    } finally {
+       //  setLoading(false);
+    }
+  }, []); 
+
+  const fetchSeasonGames = useCallback(async () => {
+    try {
+        const year = new Date().getFullYear();
+        const start = new Date().toLocaleDateString('en-CA');
+        const end = `${year}-12-31`;
+        const response = await fetch(
+          `https://statsapi.mlb.com/api/v1/schedule?lang=en&sportId=1&season=${year}&startDate=${start}&endDate=${end}`
+        );
+        const result = await response.json();
+        const games = gamesFromDates(result);
+        setGames(games);
     } catch (err) {
       //  setError(err.message);
     } finally {
@@ -164,6 +241,44 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
     return { wins, losses, pct, type: 'none' }
   }
 
+  const nextGame = (teamRecord: TeamRecord) => {
+
+    if(!games.length) {
+      return "";
+    }
+
+    // only scheduled, final, in progress, pregame, over
+		///		['S', 'F', 'I', 'P', 'O'].includes(game.status.statusCode) && 
+
+    console.log(teamRecord);
+
+    console.log(games[0]);
+
+    const game = games.find((game) => 
+      ['S', 'F', 'I', 'P', 'O'].includes(game.status.statusCode) &&
+      (game.teams.away.team.id === teamRecord.team.id || game.teams.home.team.id === teamRecord.team.id)
+    );
+
+    console.log(game);
+
+    if(game) {
+      const home = game.teams.home.team;
+      const away = game.teams.away.team;
+
+      if(game.status.statusCode !== 'I') {
+        const homeAway = (home.id == teamRecord.team.id) ? '' : '@';
+  			const otherTeam = home.id == teamRecord.team.id ? away.name : home.name;
+        return formatDate(game.gameDate) + ' - ' + homeAway + otherTeam
+        //} else if(game.status.statusCode == 'O') {
+		    // return away.name + ' ' + (away.score || 0) + ' - ' + home.name + ' ' + (home.score || 0) + ' (Game over)';
+      } else {
+			  return away.name + ' ' + (away.score || 0) + ' - ' + home.name + ' ' + (home.score || 0) + ' ( ??? )';
+      }
+    }
+
+    return "???";
+  }
+
   const tableHeader = (groupName: string) => (
     <thead><tr>
       <th>{groupName}</th>
@@ -200,14 +315,14 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
       <td>{recordDisplay(findSplit(teamRecord, 'losers'))}</td>
       <td>???</td>
       <td>???</td>
-      <td>???</td>
+      <td>{nextGame(teamRecord)}</td>
     </tr>
   )
 
   const groupTables = () => {
     const groups = groupedResults();
     return groups.map((group) => (
-        <table cellSpacing="0">
+        <table key={group.name} cellSpacing="0">
           {tableHeader(group.name)}
           <tbody>{group.teams.map((teamRecord) => tableRow(teamRecord))}</tbody>
         </table>
@@ -217,22 +332,27 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
 
   useEffect(() => {
     fetchStandings();
+    fetchSeasonGames();
   }, [fetchStandings]);
 
+  useEffect(() => {
+    attemptToLoad();
+  }, [teams]);
+
   return (
-    <div>
-
-      {standingsType === 'sport' && (
-        <table cellSpacing="0">
-          {tableHeader('Team')}
-          <tbody>{currentTeamRow()}</tbody>
-        </table> 
-      )}
-
-      { groupTables() }
-
-      
-    </div>
+    <Fragment>
+      {loaded && ( 
+        <div>
+          {standingsType === 'sport' && (
+            <table cellSpacing="0">
+              {tableHeader('Team')}
+              <tbody>{currentTeamRow()}</tbody>
+            </table> 
+          )}
+          { groupTables() }
+        </div>
+    )}
+    </Fragment>
   );
 }
 
