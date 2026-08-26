@@ -1,0 +1,38 @@
+@Dune_HostAddress = http://localhost:5238
+
+### List every quote
+GET {{Dune_HostAddress}}/api/quotes
+Accept: application/json
+
+### Filter by author
+GET {{Dune_HostAddress}}/api/quotes?by=Paul
+Accept: application/json
+
+### One quote at random
+GET {{Dune_HostAddress}}/api/quotes/random
+Accept: application/json
+
+### Fetch a single quote
+GET {{Dune_HostAddress}}/api/quotes/1
+Accept: application/json
+
+### Create a quote
+POST {{Dune_HostAddress}}/api/quotes
+Content-Type: application/json
+
+{
+  "by": "Stilgar",
+  "content": "Usul no longer needs the weirding module."
+}
+
+### Update a quote
+PUT {{Dune_HostAddress}}/api/quotes/1
+Content-Type: application/json
+
+{
+  "by": "Bene Gesserit Litany Against Fear",
+  "content": "I must not fear. Fear is the mind-killer. Fear is the little-death that brings total obliteration."
+}
+
+### Delete a quote
+DELETE {{Dune_HostAddress}}/api/quotes/1
