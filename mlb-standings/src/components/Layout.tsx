@@ -8,6 +8,7 @@ const Layout = () => {
           <NavLink to="/" className={({ isActive }) => isActive ? "tab selected" : "tab"}>All</NavLink>
           <NavLink to="/league" className={({ isActive }) => isActive ? "tab selected" : "tab"}>League</NavLink>
           <NavLink to="/division" className={({ isActive }) => isActive ? "tab selected" : "tab"}>Division</NavLink>
+          <NavLink to="/wildcard" className={({ isActive }) => isActive ? "tab selected" : "tab"}>Wildcard</NavLink>
         </div>
       </header>
       <main>

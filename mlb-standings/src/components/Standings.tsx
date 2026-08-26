@@ -26,14 +26,19 @@ interface TeamRecord {
     };
   };
   sportRank: number;
+  divisionRank: string;
   leagueRecord: RecordSplit;
   records: {
     splitRecords: RecordSplit[];
   }
   sportGamesBack: string;
   leagueGamesBack: string;
+  divisionGamesBack: string;
+  wildCardGamesBack: string;
   eliminationNumberSport: string;
   eliminationNumberLeague: string;
+  eliminationNumberDivision: string;
+  wildCardEliminationNumber: string;
   gamesPlayed: number;
   runsScored: number;
   runsAllowed: number;
@@ -61,6 +66,7 @@ interface SeasonGamesReponse {
 
 interface GameRecordTeam {
   isWinner: boolean;
+  score: number;
   team: {
     id: number;
     name: string;
@@ -69,6 +75,7 @@ interface GameRecordTeam {
 }
 
 interface GameRecord {
+  gamePk: number;
   gameDate: string;
   status: {
     statusCode: string;
@@ -77,12 +84,22 @@ interface GameRecord {
     away: GameRecordTeam
     home: GameRecordTeam
   };
+  linescore: {
+    inningHalf: string;
+    currentInningOrdinal: string;
+  }
 }
 
 const Standings = ({ teamId, standingsType }: StandingsProps) => {
   const [loaded, setLoaded] = useState(false);
   const [teams, setTeams] = useState<TeamRecord[]>([]);
+  const [teamsLoaded, setTeamsLoaded] = useState(false);
+
   const [games, setGames] = useState<GameRecord[]>([]);
+  const [gamesLoaded, setGamesLoaded] = useState(false);
+
+  const [linescores, setLinescores] = useState<GameRecord[]>([]);
+  const [linescoresLoaded, setLinescoresLoaded] = useState(false);
 
   const formatDate = (iso:string) => {
   const d = new Date(iso);
@@ -119,8 +136,8 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
   }
 
   const attemptToLoad = () => {
-    if(teams.length) {
-      setLoaded(true);
+    if(teamsLoaded && gamesLoaded && linescoresLoaded) {
+      setLoaded(true); // fully loaded
     }
   }
 
@@ -132,6 +149,7 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
         const result = await response.json();
         const teams = teamsFromStandings(result);
         setTeams(teams);
+        setTeamsLoaded(true);
     } catch (err) {
       //  setError(err.message);
     } finally {
@@ -152,6 +170,7 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
         const result = await response.json();
         const games = gamesFromDates(result);
         setGames(games);
+        setGamesLoaded(true);
     } catch (err) {
       //  setError(err.message);
     } finally {
@@ -159,7 +178,22 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
     }
   }, []); 
 
-  //         const start = new Date().toLocaleDateString('en-CA');
+  const fetchLinescores = useCallback(async () => {
+    try {
+        const today = new Date().toLocaleDateString('en-CA');
+        const response = await fetch(
+          `https://statsapi.mlb.com/api/v1/schedule?language=&sportId=1&date=${today}&hydrate=linescore`
+        );
+        const result = await response.json();
+        const linescores = gamesFromDates(result);
+        setLinescores(linescores);
+        setLinescoresLoaded(true);
+    } catch (err) {
+      //  setError(err.message);
+    } finally {
+       //  setLoading(false);
+    }
+  }, []); 
 
   const groupedResults = () => {
 
@@ -187,6 +221,19 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
           {name: shortName, key: groupName, teams: sortedTeams.filter((teamRecord) => teamRecord.team.division.name === groupName)}
         );
       })
+    } else if(standingsType === 'wildcard') {
+      groups.push(
+        {name: "NL Leaders", key: "NL Leaders", teams: sortedTeams.filter((team) => team.team.league.name == 'National League' && team.divisionRank === "1")}
+      );
+      groups.push(
+        {name: "NL Wildcard", key: "NL Wildcard", teams: sortedTeams.filter((team) => team.team.league.name == 'National League' && team.divisionRank !== "1")}
+      );
+      groups.push(
+        {name: "AL Leaders", key: "AL Leaders", teams: sortedTeams.filter((team) => team.team.league.name == 'American League' && team.divisionRank === "1")}
+      );
+      groups.push(
+        {name: "AL Wildcard", key: "AL Wildcard", teams: sortedTeams.filter((team) => team.team.league.name == 'American League' && team.divisionRank !== "1")}
+      );
     }
 
     return groups;
@@ -197,6 +244,10 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
       return teamRecord.sportGamesBack;
     } else if(standingsType === 'league') {
       return teamRecord.leagueGamesBack;
+    } else if(standingsType === 'division') {
+      return teamRecord.divisionGamesBack;
+    } else if(standingsType === 'wildcard') {
+      return teamRecord.wildCardGamesBack;
     }
   };
 
@@ -205,6 +256,10 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
       return teamRecord.eliminationNumberSport;
     } else if(standingsType === 'league') {
       return teamRecord.eliminationNumberLeague;
+    } else if(standingsType === 'division') {
+      return teamRecord.eliminationNumberDivision;
+    } else if(standingsType === 'wildcard') {
+      return teamRecord.wildCardEliminationNumber;
     }
   };
 
@@ -269,29 +324,40 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
       return "";
     }
 
-    // only scheduled, final, in progress, pregame, over
-		///		['S', 'F', 'I', 'P', 'O'].includes(game.status.statusCode) && 
+    const sortedGames = games.sort((a, b) => a.gameDate.localeCompare(b.gameDate));
 
-    const game = games.find((game) => 
-      !['F', 'O'].includes(game.status.statusCode) &&
+    const game = sortedGames.find((game) => 
+      ['S', 'I', 'P', 'O'].includes(game.status.statusCode) &&
       (game.teams.away.team.id === teamRecord.team.id || game.teams.home.team.id === teamRecord.team.id)
     );
 
     if(game) {
-      const home = game.teams.home.team;
-      const away = game.teams.away.team;
-
-      if(game.status.statusCode !== 'I') {
-        const homeAway = (home.id == teamRecord.team.id) ? '' : '@';
-  			const otherTeam = home.id == teamRecord.team.id ? away.name : home.name;
+      const home = game.teams.home;
+      const away = game.teams.away;
+      if(game.status.statusCode !== 'I') {  
+        const homeAway = (home.team.id == teamRecord.team.id) ? '' : '@';
+  			const otherTeam = home.team.id == teamRecord.team.id ? teamName(away.team.id) : teamName(home.team.id);
         return formatDate(game.gameDate) + ' - ' + homeAway + otherTeam
-        //} else if(game.status.statusCode == 'O') {
-		    // return away.name + ' ' + (away.score || 0) + ' - ' + home.name + ' ' + (home.score || 0) + ' (Game over)';
       } else {
-			  return away.name + ' ' + (away.score || 0) + ' - ' + home.name + ' ' + (home.score || 0) + ' ( ??? )';
+        const live = linescores.find((linescore) => linescore.gamePk === game.gamePk);
+        let gameState = '';
+        if(live && live.linescore) {
+          gameState = ` (${live.linescore.inningHalf.slice(0, 3)} ${live.linescore.currentInningOrdinal})`
+        }
+
+			  return teamName(away.team.id) + ' ' + (away.score || 0) + ' - ' + teamName(home.team.id) + ' ' + (home.score || 0) + gameState;
       }
     }
     return "";
+  }
+
+  const teamName = (id: number ) => {
+    const team = teams.find((team) => team.team.id === id)
+
+    if(team) {
+      return team.team.clubName;
+    }
+    return '';
   }
 
   const tableHeader = (groupName: string) => (
@@ -348,11 +414,12 @@ const Standings = ({ teamId, standingsType }: StandingsProps) => {
   useEffect(() => {
     fetchStandings();
     fetchSeasonGames();
+    fetchLinescores();
   }, [fetchStandings]);
 
   useEffect(() => {
     attemptToLoad();
-  }, [teams]);
+  }, [teamsLoaded, gamesLoaded, linescoresLoaded]);
 
   return (
     <Fragment>

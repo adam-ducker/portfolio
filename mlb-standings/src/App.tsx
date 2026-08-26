@@ -13,6 +13,7 @@ const router = createBrowserRouter([
       { index: true, element: <Standings standingsType="sport" teamId={teamId} /> },
       { path: 'league', element: <Standings standingsType="league" teamId={teamId} /> },
       { path: 'division', element: <Standings standingsType="division" teamId={teamId} /> },
+      { path: 'wildcard', element: <Standings standingsType="wildcard" teamId={teamId} /> },
     ],
   },
 ]);
